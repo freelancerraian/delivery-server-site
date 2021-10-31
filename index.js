@@ -24,6 +24,7 @@ async function run() {
     const database = client.db("Delivary");
     const servicesCollection = database.collection("services");
     const usersCollection = database.collection("users");
+    const checkoutCollection = database.collection("checkout");
 
     // get API
     app.get("/services", async (req, res) => {
@@ -36,6 +37,12 @@ async function run() {
       const cursor = usersCollection.find({});
       const users = await cursor.toArray();
       res.send(users);
+    });
+
+    app.get("/checkout", async (req, res) => {
+      const cursor = checkoutCollection.find({});
+      const checkout = await cursor.toArray();
+      res.send(checkout);
     });
 
     // get single Services
@@ -55,6 +62,14 @@ async function run() {
       res.json(users);
     });
 
+    app.get("/checkout/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const checkout = await checkoutCollection.findOne(query);
+      console.log("load checkout", id);
+      res.json(checkout);
+    });
+
     // Post API
     app.post("/services", async (req, res) => {
       const service = req.body;
@@ -70,6 +85,15 @@ async function run() {
       console.log("hit post", users);
 
       const result = await usersCollection.insertOne(users);
+      console.log(result);
+      res.json(result);
+    });
+
+    app.post("/checkout", async (req, res) => {
+      const checkout = req.body;
+      console.log("hit post", checkout);
+
+      const result = await checkoutCollection.insertOne(checkout);
       console.log(result);
       res.json(result);
     });
@@ -100,6 +124,15 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await servicesCollection.deleteOne(query);
+      console.log("delete Id", result);
+
+      res.json(result);
+    });
+
+    app.delete("/checkout/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await checkoutCollection.deleteOne(query);
       console.log("delete Id", result);
 
       res.json(result);
