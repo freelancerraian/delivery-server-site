@@ -23,12 +23,19 @@ async function run() {
     await client.connect();
     const database = client.db("Delivary");
     const servicesCollection = database.collection("services");
+    const usersCollection = database.collection("users");
 
     // get API
     app.get("/services", async (req, res) => {
       const cursor = servicesCollection.find({});
       const services = await cursor.toArray();
       res.send(services);
+    });
+
+    app.get("/users", async (req, res) => {
+      const cursor = usersCollection.find({});
+      const users = await cursor.toArray();
+      res.send(users);
     });
 
     // get single Services
@@ -40,6 +47,14 @@ async function run() {
       res.json(service);
     });
 
+    app.get("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const users = await usersCollection.findOne(query);
+      console.log("load users", id);
+      res.json(users);
+    });
+
     // Post API
     app.post("/services", async (req, res) => {
       const service = req.body;
@@ -47,6 +62,36 @@ async function run() {
 
       const result = await servicesCollection.insertOne(service);
       console.log(result);
+      res.json(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const users = req.body;
+      console.log("hit post", users);
+
+      const result = await usersCollection.insertOne(users);
+      console.log(result);
+      res.json(result);
+    });
+
+    // UPDATE API
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedUser = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: updatedUser.name,
+          email: updatedUser.email,
+        },
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      console.log("update user", id);
       res.json(result);
     });
 
